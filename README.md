@@ -2,8 +2,6 @@
 ### Advanced Command Retrieval and Pattern Analysis System
 *An Academic Data Structures and Algorithms (DSA) Web Application*
 
-![Linux Command Intelligence Architecture](file:///Users/apple/.gemini/antigravity-ide/brain/1a24b4b9-f0eb-4224-b7f9-a8e02b0c4f0d/dsa_architecture_page_1789922654770.png)
-
 ---
 
 ## 1. Project Overview
