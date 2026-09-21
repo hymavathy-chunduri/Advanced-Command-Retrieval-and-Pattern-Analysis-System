@@ -3,6 +3,20 @@ import { fallbackCommands } from '../data/commandsData';
 
 const API_BASE_URL = '/api';
 
+// Check if running on local development machine with Spring Boot server
+const isLocalhost = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' ||
+   window.location.hostname === '127.0.0.1' ||
+   window.location.hostname === '[::1]');
+
+// Validate backend response is actual JSON data (not HTML fallback strings from static router)
+function isValidJson(data, expectedType = 'any') {
+  if (!data || typeof data === 'string') return false;
+  if (expectedType === 'array') return Array.isArray(data) && data.length > 0;
+  if (expectedType === 'object') return typeof data === 'object' && !Array.isArray(data);
+  return typeof data === 'object';
+}
+
 // --- Client-Side DSA Implementations for Standalone / GitHub Pages Fallback ---
 
 // 1. Rabin-Karp Rolling Hash
@@ -66,31 +80,35 @@ export const api = {
 
   // GET /api/commands
   getAllCommands: async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/commands`, { timeout: 3000 });
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (err) {
-      console.warn("Backend API unavailable. Using embedded Linux commands dataset.");
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/commands`, { timeout: 3000 });
+        if (isValidJson(res.data, 'array')) return res.data;
+      } catch (err) {}
     }
     return fallbackCommands;
   },
 
   // GET /api/commands/{name}
   getCommandByName: async (commandName) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/commands/${encodeURIComponent(commandName)}`, { timeout: 3000 });
-      if (res.data) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/commands/${encodeURIComponent(commandName)}`, { timeout: 3000 });
+        if (isValidJson(res.data, 'object')) return res.data;
+      } catch (err) {}
+    }
     const cmd = fallbackCommands.find(c => c.command.toLowerCase() === commandName.toLowerCase());
     return cmd || null;
   },
 
   // GET /api/commands/search?q=query (Rabin-Karp)
   searchCommands: async (query) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/commands/search`, { params: { q: query }, timeout: 3000 });
-      if (res.data) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/commands/search`, { params: { q: query }, timeout: 3000 });
+        if (isValidJson(res.data, 'object') && Array.isArray(res.data.results)) return res.data;
+      } catch (err) {}
+    }
 
     const start = performance.now();
     const matched = fallbackCommands.filter(cmd =>
@@ -115,10 +133,12 @@ export const api = {
 
   // GET /api/commands/autocomplete?q=prefix (Trie)
   getAutocomplete: async (prefix, limit = 8) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/commands/autocomplete`, { params: { q: prefix, limit }, timeout: 3000 });
-      if (res.data) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/commands/autocomplete`, { params: { q: prefix, limit }, timeout: 3000 });
+        if (isValidJson(res.data, 'object') && Array.isArray(res.data.suggestions)) return res.data;
+      } catch (err) {}
+    }
 
     const p = (prefix || '').toLowerCase();
     const suggestions = fallbackCommands
@@ -136,10 +156,12 @@ export const api = {
 
   // GET /api/commands/correct?q=query (Levenshtein Edit Distance)
   correctSpelling: async (query, maxDistance = 3) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/commands/correct`, { params: { q: query, maxDistance, limit: 5 }, timeout: 3000 });
-      if (res.data) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/commands/correct`, { params: { q: query, maxDistance, limit: 5 }, timeout: 3000 });
+        if (isValidJson(res.data, 'object') && Array.isArray(res.data.suggestions)) return res.data;
+      } catch (err) {}
+    }
 
     const input = (query || '').trim();
     if (!input) {
@@ -175,10 +197,12 @@ export const api = {
 
   // GET /api/commands/category/{category}
   getCommandsByCategory: async (category) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/commands/category/${encodeURIComponent(category)}`, { timeout: 3000 });
-      if (res.data && Array.isArray(res.data)) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/commands/category/${encodeURIComponent(category)}`, { timeout: 3000 });
+        if (isValidJson(res.data, 'array')) return res.data;
+      } catch (err) {}
+    }
 
     if (category === 'All') return fallbackCommands;
     return fallbackCommands.filter(c => c.category.toLowerCase() === category.toLowerCase());
@@ -186,19 +210,23 @@ export const api = {
 
   // GET /api/categories
   getAllCategories: async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/categories`, { timeout: 3000 });
-      if (res.data && Array.isArray(res.data)) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/categories`, { timeout: 3000 });
+        if (isValidJson(res.data, 'array')) return res.data;
+      } catch (err) {}
+    }
     return fallbackCategories;
   },
 
   // GET /api/commands/random
   getRandomCommand: async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/commands/random`, { timeout: 3000 });
-      if (res.data) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/commands/random`, { timeout: 3000 });
+        if (isValidJson(res.data, 'object') && res.data.command) return res.data;
+      } catch (err) {}
+    }
 
     const randomIndex = Math.floor(Math.random() * fallbackCommands.length);
     return fallbackCommands[randomIndex];
@@ -206,10 +234,12 @@ export const api = {
 
   // GET /api/stats
   getSystemStats: async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/stats`, { timeout: 3000 });
-      if (res.data) return res.data;
-    } catch (err) {}
+    if (isLocalhost) {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/stats`, { timeout: 3000 });
+        if (isValidJson(res.data, 'object') && res.data.totalCommands) return res.data;
+      } catch (err) {}
+    }
 
     const catCounts = {};
     fallbackCommands.forEach(c => {
@@ -230,4 +260,5 @@ export const api = {
     };
   }
 };
+
 
