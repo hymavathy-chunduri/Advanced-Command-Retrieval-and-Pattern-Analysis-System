@@ -1,0 +1,13 @@
+# Example Environment Configuration Template for Linux Command Intelligence
+
+server.port=8080
+
+# Environment variables for database connection:
+# Export these in your terminal before running Spring Boot if needed:
+# export DB_URL=jdbc:postgresql://localhost:5433/linux_command_db
+# export DB_USERNAME=postgres
+# export DB_PASSWORD=your_password
+
+DB_URL=jdbc:postgresql://localhost:5433/linux_command_db
+DB_USERNAME=postgres
+DB_PASSWORD=YOUR_PASSWORD
